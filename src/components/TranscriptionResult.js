@@ -9,8 +9,24 @@ const TranscriptionResult = ({ result }) => {
 
   const copyToClipboard = () => {
     if (summary) {
-      navigator.clipboard.writeText(summary);
-      toast.success('Text copied to clipboard!');
+      try {
+        // Attempt to use the modern Clipboard API
+        navigator.clipboard.writeText(summary).then(() => {
+          toast.success('Text copied to clipboard!');
+        }).catch(() => {
+          // Fallback if the Clipboard API fails
+          const textarea = document.createElement('textarea');
+          textarea.value = summary;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          toast.success('Text copied to clipboard using fallback!');
+        });
+      } catch (err) {
+        // Handle any unexpected errors
+        toast.error('Failed to copy text to clipboard!');
+      }
     } else {
       toast.error('No text to copy!');
     }
