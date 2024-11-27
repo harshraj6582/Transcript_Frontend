@@ -43,13 +43,13 @@ const TranscriptionService = () => {
 
         if (selectedFeature === 'audioUrl') {
             requestData.audio_url = inputValue;
-            response = await axios.post('http://127.0.0.1:8000/api/test/whisper-remote/', requestData);
+            response = await axios.post('http://20.244.100.109:9000/api/test/whisper-remote/', requestData);
         } else if (selectedFeature === 'localAudio') {
             const formData = new FormData();
             formData.append('audio_file', file);
             formData.append('user_prompt', userPrompt);
             response = await axios.post(
-                'http://127.0.0.1:8000/api/test/whisper-local/',
+                'http://20.244.100.109:9000/api/test/whisper-local/',
                 formData,
                 {
                     headers: {
@@ -59,7 +59,7 @@ const TranscriptionService = () => {
             );
         } else if (selectedFeature === 'youtube') {
             requestData.youtube_url = inputValue;
-            response = await axios.post('http://127.0.0.1:8000/api/test/youtube/', requestData);
+            response = await axios.post('http://20.244.100.109:9000/api/test/youtube/', requestData);
         }
         clearTimeout(timeoutId); // Clear the timeout if the request is successful
         setResult(response.data);

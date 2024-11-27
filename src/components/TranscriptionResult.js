@@ -10,19 +10,18 @@ const TranscriptionResult = ({ result }) => {
   const copyToClipboard = () => {
     if (summary) {
       try {
-        // Attempt to use the modern Clipboard API
-        navigator.clipboard.writeText(summary).then(() => {
-          toast.success('Text copied to clipboard!');
-        }).catch(() => {
-          // Fallback if the Clipboard API fails
-          const textarea = document.createElement('textarea');
-          textarea.value = summary;
-          document.body.appendChild(textarea);
-          textarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textarea);
-          toast.success('Text copied to clipboard using fallback!');
-        });
+        // Fallback method to ensure text is copied regardless of environment
+        const textarea = document.createElement('textarea');
+        textarea.value = summary;
+        textarea.style.position = 'absolute'; // Prevent scrolling to the bottom
+        textarea.style.left = '-9999px'; // Hide the textarea off-screen
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy'); // Execute the copy command
+        document.body.removeChild(textarea);
+  
+        // Show success toast notification
+        toast.success('Text copied to clipboard!');
       } catch (err) {
         // Handle any unexpected errors
         toast.error('Failed to copy text to clipboard!');
@@ -31,6 +30,7 @@ const TranscriptionResult = ({ result }) => {
       toast.error('No text to copy!');
     }
   };
+  
 
   return (
     <div className="space-y-6 animate-fadeIn">
