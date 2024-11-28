@@ -5,6 +5,8 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import axios from 'axios';
 import TranscriptionResult from './TranscriptionResult';
 
+const BASE_URL = 'http://20.244.100.109:9000/api/test'; // Define the base URL
+
 const TranscriptionService = () => {
   const [selectedFeature, setSelectedFeature] = useState('audioUrl');
   const [inputValue, setInputValue] = useState('');
@@ -32,6 +34,12 @@ const TranscriptionService = () => {
         return;
     }
 
+    if (selectedFeature === 'audioUrl' && !isValidUrl(inputValue)) {
+        setError('<strong>Enter a valid URL.</strong>');
+        setLoading(false);
+        return;
+    }
+
     const timeoutId = setTimeout(() => {
         setLoading(false);
         setError('Request timed out. Please try again.');
@@ -43,13 +51,13 @@ const TranscriptionService = () => {
 
         if (selectedFeature === 'audioUrl') {
             requestData.audio_url = inputValue;
-            response = await axios.post('http://20.244.100.109:9000/api/test/whisper-remote/', requestData);
+            response = await axios.post(`${BASE_URL}/whisper-remote/`, requestData);
         } else if (selectedFeature === 'localAudio') {
             const formData = new FormData();
             formData.append('audio_file', file);
             formData.append('user_prompt', userPrompt);
             response = await axios.post(
-                'http://20.244.100.109:9000/api/test/whisper-local/',
+                `${BASE_URL}/whisper-local/`,
                 formData,
                 {
                     headers: {
@@ -59,16 +67,21 @@ const TranscriptionService = () => {
             );
         } else if (selectedFeature === 'youtube') {
             requestData.youtube_url = inputValue;
-            response = await axios.post('http://20.244.100.109:9000/api/test/youtube/', requestData);
+            response = await axios.post(`${BASE_URL}/youtube/`, requestData);
         }
         clearTimeout(timeoutId); // Clear the timeout if the request is successful
         setResult(response.data);
     } catch (err) {
-      console.error('Error:', err.message);
-      setError('Failed to process the request. Please try again.');
+        console.error('Error:', err.message);
+        setError('Failed to process the request. Please try again.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
+  };
+
+  const isValidUrl = (string) => {
+    const res = string.match(/(http|https):\/\/[^\s/$.?#].[^\s]*/);
+    return (res !== null);
   };
 
   return (
@@ -166,7 +179,7 @@ const TranscriptionService = () => {
                   {selectedFeature === 'youtube' && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">
-                        YouTube Video ID
+                        YouTube Video URL 
                       </label>
                       <input
                         type="text"
@@ -180,7 +193,7 @@ const TranscriptionService = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      User Prompt
+                      User Prompt <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -194,14 +207,14 @@ const TranscriptionService = () => {
                   {error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
+                      <AlertDescription dangerouslySetInnerHTML={{ __html: `<strong>${error}</strong>` }} />
                     </Alert>
                   )}
 
                   <button
                     type="submit"
-                    disabled={loading || (selectedFeature !== 'localAudio' && !inputValue) || (selectedFeature === 'localAudio' && !file)}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-medium 
+                    disabled={loading || (selectedFeature !== 'localAudio' && !inputValue) || (selectedFeature === 'localAudio' && !file) || !userPrompt}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-lg font-medium 
                              hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed
                              flex items-center justify-center gap-2"
                   >
